@@ -9,71 +9,110 @@
  */
 
 /**
- * Add init actions
+ * Add action to add page to admin menu
  */
-add_action( 'init', 'causality_register_cpt' );
+add_action( 'admin_menu', 'causality_admin_menu_page' );
+
+add_action( 'admin_init', 'causality_settings_init' );
+
+/**
+ * Add settings page to admin menu
+ */
+function causality_admin_menu_page() {
+	add_menu_page( 'Causality', 'Causality', 'manage_options', 'causality_settings', 'causality_settings_page' );
+}
+
+function causality_settings_init() {
+	add_settings_section(
+		'causality_settings_section',
+		'Settings section for Causality',
+		'causality_settings_section_render',
+		'causality_settings'
+	);
+
+	add_settings_field(
+		'causality_title',
+		'Campaign title',
+		'causality_settings_title_render',
+		'causality_settings',
+		'causality_settings_section'
+	);
+
+	add_settings_field(
+		'causality_image_url',
+		'Campaign image URL',
+		'causality_settings_image_url_render',
+		'causality_settings',
+		'causality_settings_section'
+	);
+
+	register_setting(
+		'causality', 'causality_title'
+	);
+
+	register_setting(
+		'causality', 'causality_image_url'
+	);
+}
+
+function causality_settings_section_render() {
+	echo '<p>Causality settings head</p>';
+}
+
+function causality_settings_title_render() {
+	$setting = esc_attr( get_option( 'causality_title' ) );
+	echo "<input type='text' name='causality_title' value='$setting' />"; // XSS ok.
+}
+
+function causality_settings_image_url_render() {
+	$setting = esc_attr( get_option( 'causality_image_url' ) );
+	echo "<input type='text' name='causality_image_url' value='$setting' />"; // XSS ok.
+}
+
+/**
+ * Settings page
+ */
+function causality_settings_page() {
+	?>
+	<div class="wrap">
+		<h1>Causality settings</h1>
+		<form method="post" action="options.php" id="causality_settings_form">
+			<?php settings_fields( 'causality' ); ?>
+			<?php do_settings_sections( 'causality_settings' ); ?>
+			<?php submit_button(); ?>
+		</form>
+	</div>
+	<?php
+}
 
 /**
  * Add shortcodes
  */
 add_shortcode( 'causality', 'causality_shortcode' );
 
-/**
- * Register 'Causality campaign' custom post type
- */
-function causality_register_cpt() {
-	$labels = [
-		'name' => _x( 'Causality campaigns', 'causality_campaign' ),
-		'singular_name' => _x( 'Causality campaign', 'causality_campaign' ),
-		'add_new' => _x( 'Add New', 'causality_campaign' ),
-		'add_new_item' => _x( 'Add New Causality campaign', 'causality_campaign' ),
-		'edit_item' => _x( 'Edit Causality campaign', 'causality_campaign' ),
-		'new_item' => _x( 'New Causality campaign', 'causality_campaign' ),
-		'view_item' => _x( 'View Causality campaign', 'causality_campaign' ),
-		'search_items' => _x( 'Search Causality campaigns',	 'causality_campaign' ),
-		'not_found' => _x( 'No Causality campaigns found', 'causality_campaign' ),
-		'not_found_in_trash' => _x( 'No Causality campaigns found in Trash', 'causality_campaign' ),
-		'menu_name' => _x( 'Causality campaigns', 'causality_campaign' ),
-	];
-
-	$parameters = [
-		'labels' => $labels,
-		'description' => 'Overlay campaign for Causality',
-		'public' => true,
-	];
-
-	register_post_type( 'causality_campaign', $parameters );
-}
 
 /**
- * Shortcode for rendering a Causality campaign
+ * Shortcode for rendering Causality
  *
  * @param array $attributes - array of attributes in shortcode.
- * $attributes['id'] - ID of causality campaign.
  */
 function causality_shortcode( $attributes ) {
-	return render_causality_campaign( 1 );
+	wp_enqueue_script( 'causality', plugins_url( 'causality.js', __FILE__ ), [ 'jquery', 'jcrop' ] );
+	wp_enqueue_style( 'causality', plugins_url( 'causality.css', __FILE__ ), [ 'jcrop' ] );
+	return causality_render();
 }
 
 /**
- * Render a specified Causality campaign
- *
- * @param int $id - ID of Causality campaign.
+ * Render Causality
  */
-function render_causality_campaign( $id ) {
+function causality_render() {
 	$html = '';
-
-	$query_parameters = [
-		'post_type' => 'causality_campaign',
-	];
-
-	$query = new WP_Query( $query_parameters );
-
-	if ( $query->have_posts() ) {
-		$html .= '<b>';
-		$query->the_post();
-		$html .= get_the_title();
-	}
-	exit;
+	$html .= '<script>var causality_overlay = "' . esc_url( get_option( 'causality_image_url' ) ) . '";</script>';
+	$html .= '<h3>' . esc_attr( get_option( 'causality_title' ) ) . '</h3>';
+	$html .= '<input type="file" id="causality_upload" value="Upload your profile photo" accept="image/*" />';
+	$html .= '<div id="causality_jcrop"></div>';
+	$html .= '<button id="causality_crop_button">Crop</button>';
+	$html .= '<canvas id="causality_canvas" style="display: none;" width="960px" height="960px"></canvas>';
+	$html .= '<div id="causality_output"></div>';
 	return $html;
 }
