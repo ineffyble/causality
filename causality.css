@@ -5,4 +5,7 @@
 .jcrop-holder div div .jcrop-tracker {
 	background-size: cover;
 }
+
+#causality_upload, .causality-button, #causality_output, #causality_jcrop_container {
+	display: none;
 }
