@@ -108,6 +108,7 @@ function causality_shortcode( $attributes ) {
 function causality_render() {
 	$html = '';
 	$html .= '<script>var causality_overlay = "' . esc_url( get_option( 'causality_image_url' ) ) . '";</script>';
+	$html .= "<style>.jcrop-holder div div .jcrop-tracker{background: url('" . esc_url( get_option( 'causality_image_url' ) ) . "');</style>";
 	$html .= '<h3>' . esc_attr( get_option( 'causality_title' ) ) . '</h3>';
 	$html .= '<input type="file" id="causality_upload" value="Upload your profile photo" accept="image/*" />';
 	$html .= '<div id="causality_jcrop"></div>';

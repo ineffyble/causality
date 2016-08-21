@@ -5,7 +5,7 @@ var casualityUploadHandler = function() {
 	if (input.files && input.files[0]) {
 		casualityInitCropInterface(input.files[0]);
 	}
-}
+};
 
 var casualityInitCropInterface = function(file) {
 	var reader = new FileReader();
@@ -15,7 +15,8 @@ var casualityInitCropInterface = function(file) {
 		profileImage.id = 'causality_jcrop_img';
 		profileImage.onload = function() {
 			jQuery("#causality_jcrop").append(profileImage);
-			jQuery("#causality_jcrop").Jcrop({aspectRatio: 1}, function() {
+			console.log(jQuery(".entry-content").width());
+			jQuery("#causality_jcrop").Jcrop({aspectRatio: 1, trueSize: [profileImage.naturalWidth, profileImage.naturalHeight]}, function() {
 				jcrop_api = this;
 			});
 			var dim = jcrop_api.getBounds();
@@ -32,17 +33,17 @@ var casualityInitCropInterface = function(file) {
 			}
 
 			jcrop_api.setSelect([x, y, dim[0], dim[1]]);
-		}
+		};
 		profileImage.src = read;
-	}
+	};
 	reader.readAsDataURL(file);	
-}
+};
 
 var casualityCrop = function() {
 	var selection = jcrop_api.tellSelect();
 	console.log(selection);
 	causalityRenderProfile(selection.x, selection.y, selection.w, selection.h, selection.x2, selection.y2);
-}
+};
 
 var causalityRenderProfile = function(x, y, w, h, x2, y2) {
 	var canvas = document.getElementById("causality_canvas");
@@ -56,9 +57,9 @@ var causalityRenderProfile = function(x, y, w, h, x2, y2) {
 		ctx.drawImage(overlayImage, 0, 0, 960, 960);
 		data = canvas.toDataURL();
 		jQuery("#causality_output").html('<img src="' + data + '" width="500px" height="500px"/>');		
-	}
+	};
 
-}
+};
 
 jQuery('#causality_upload').change(casualityUploadHandler);
 jQuery("#causality_crop_button").click(casualityCrop);
